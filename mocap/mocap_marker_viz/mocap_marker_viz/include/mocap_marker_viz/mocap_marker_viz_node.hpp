@@ -49,6 +49,7 @@ public:
 
 private:
   void marker_callback(const mocap_msgs::msg::Markers::SharedPtr msg) const;
+  void other_marker_callback(const mocap_msgs::msg::Markers::SharedPtr msg) const;
   void rb_callback(const mocap_msgs::msg::RigidBodies::SharedPtr msg) const;
 
   visualization_msgs::msg::Marker marker2visual(
@@ -61,6 +62,9 @@ private:
 
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr publisher_;
   rclcpp::Subscription<mocap_msgs::msg::Markers>::SharedPtr markers_subscription_;
+
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr publisher_other_;
+  rclcpp::Subscription<mocap_msgs::msg::Markers>::SharedPtr other_markers_subscription_;
 
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr publisher_rb_;
   rclcpp::Subscription<mocap_msgs::msg::RigidBodies>::SharedPtr markers_subscription_rb_;

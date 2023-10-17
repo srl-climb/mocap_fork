@@ -28,6 +28,9 @@ MarkerVisualizer::MarkerVisualizer()
   publisher_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
     "visualization_marker", 1000);
 
+  publisher_other_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
+    "visualization_other_marker", 1000);
+
   declare_parameter<float>("default_marker_color_r", 0.0f);
   declare_parameter<float>("default_marker_color_g", 1.0f);
   declare_parameter<float>("default_marker_color_b", 0.0f);
@@ -54,6 +57,9 @@ MarkerVisualizer::MarkerVisualizer()
 
   markers_subscription_ = this->create_subscription<mocap_msgs::msg::Markers>(
     "markers", 1000, std::bind(&MarkerVisualizer::marker_callback, this, _1));
+
+  other_markers_subscription_ = this->create_subscription<mocap_msgs::msg::Markers>(
+    "other_markers", 1000, std::bind(&MarkerVisualizer::other_marker_callback, this, _1));
 
   // Rigid bodies
   markers_subscription_rb_ = this->create_subscription<mocap_msgs::msg::RigidBodies>(
@@ -103,6 +109,21 @@ MarkerVisualizer::marker_callback(const mocap_msgs::msg::Markers::SharedPtr msg)
     visual_markers.markers.push_back(marker2visual(counter++, marker.translation));
   }
   publisher_->publish(visual_markers);
+}
+
+void
+MarkerVisualizer::other_marker_callback(const mocap_msgs::msg::Markers::SharedPtr msg) const
+{
+  if (publisher_other_->get_subscription_count() == 0) {
+    return;
+  }
+
+  static int counter = 0;
+  visualization_msgs::msg::MarkerArray visual_markers;
+  for (const mocap_msgs::msg::Marker & marker : msg->markers) {
+    visual_markers.markers.push_back(marker2visual(counter++, marker.translation));
+  }
+  publisher_other_->publish(visual_markers);
 }
 
 visualization_msgs::msg::Marker
