@@ -134,7 +134,29 @@ OptitrackDriverNode::process_frame(sFrameOfMocapData * data)
         marker2rb[modelID].push_back(marker);
       }
     }
-    mocap_markers_pub_->publish(msg);
+  }
+
+  // Other markers (without a label in optitrack)
+  if (mocap_other_markers_pub_->get_subscription_count() > 0) {
+
+    mocap_msgs::msg::Markers msg;
+    msg.header.frame_id = "map";
+    msg.header.stamp = now();
+    msg.frame_number = frame_number_;
+
+    for (int i = 0; i < data->nOtherMarkers; i++) {
+
+      MarkerData & marker_data = data->OtherMarkers[i];
+
+      mocap_msgs::msg::Marker marker;
+      marker.marker_index = i;
+      marker.translation.x = marker_data[0];
+      marker.translation.y = marker_data[1];
+      marker.translation.z = marker_data[2];
+
+      msg.markers.push_back(marker);
+      mocap_other_markers_pub_->publish(msg);
+    }
   }
 
   if (mocap_rigid_body_pub_->get_subscription_count() > 0) {
@@ -176,6 +198,8 @@ OptitrackDriverNode::on_configure(const rclcpp_lifecycle::State & state)
 
   mocap_markers_pub_ = create_publisher<mocap_msgs::msg::Markers>(
     "markers", rclcpp::QoS(1000));
+  mocap_other_markers_pub_ = create_publisher<mocap_msgs::msg::Markers>(
+    "other_markers", rclcpp::QoS(1000));
   mocap_rigid_body_pub_ = create_publisher<mocap_msgs::msg::RigidBodies>(
     "rigid_bodies", rclcpp::QoS(1000));
 
@@ -191,6 +215,7 @@ OptitrackDriverNode::on_activate(const rclcpp_lifecycle::State & state)
 {
   (void)state;
   mocap_markers_pub_->on_activate();
+  mocap_other_markers_pub_->on_activate();
   mocap_rigid_body_pub_->on_activate();
   RCLCPP_INFO(get_logger(), "Activated!\n");
 
@@ -202,6 +227,7 @@ OptitrackDriverNode::on_deactivate(const rclcpp_lifecycle::State & state)
 {
   (void)state;
   mocap_markers_pub_->on_deactivate();
+  mocap_other_markers_pub_->on_deactivate();
   mocap_rigid_body_pub_->on_deactivate();
   RCLCPP_INFO(get_logger(), "Deactivated!\n");
 
